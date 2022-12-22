@@ -1,56 +1,69 @@
 import React, {useState} from "react";
+import WeatherInfo from "./WeatherInfo";
 import "./Weather.css";
 import axios from "axios";
 
-export default function Weather(){
+export default function Weather(props){
     let [weatherData, setWeatherData] = useState({ready:false});
+    const [city, setCity] = useState(props.defaultCity)
     
     function handleSubmit(response){
-        console.log(response.data)
         setWeatherData({
         ready: true,
         temperature: response.data.main.temp,
+        city: response.data.name,
         wind: response.data.wind.speed,
         description: response.data.weather[0].description,
         humidity:response.data.main.humidity,
+        icon: response.data.weather[0].icon,
+        date: new Date(response.data.dt * 1000)
         
     })
     }
-    const apiKey = "1df7eb56ad9548bea729248d31a2b4dd";
-    let city= "Paris"; 
+    
+    
+    function search(){
+        const apiKey = "5f472b7acba333cd8a035ea85a0d4d4c";
     let ApiUrl=`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
     axios.get(ApiUrl).then(handleSubmit);
+    }
+    function handleSearch(event){
+        event.preventDefault();
+        search();
+
+    }
+    function handleCityChange(event){
+        setCity(event.target.value)
+
+    }
     
     if (weatherData.ready){
 return(
         <div className="Weather">
-            <div className="row">
-                <div className="col-8 pt-4">
-                   <img src="https://ssl.gstatic.com/onebox/weather/64/cloudy.png"
-                    alt="cloudy"/>
-                    <span className="temperature">{Math.round(weatherData.temperature)}</span>
-                    <span className="unit">°C</span>
-                     
-                    
-                    <ul className="list">
-                        <li>Humidity: {weatherData.humidity}%</li>
-                        <li>Wind: {Math.round(weatherData.wind)} km/h</li>
-                    </ul>
-                    
+            <form onSubmit={handleSearch}>
+                <div className="row">
+                    <div className="col-9">
+                    <input type="search"
+                    placeholder="Enter a city"
+                    className="form control"
+                    autoFocus="on"
+                    />
+                    </div>
+                    <div className="col-3">
+                        <input type="submit"
+                        value="search"
+                        className="btn btn-primary"
+                        onChange={handleCityChange}/>
+                    </div>
                 </div>
-                
-                <div className="col-4">
-                    <h1>Paris, France</h1>
-                    <ul>
-                        <li>Wednesday 3:00 a.m.</li>
-                        <li className="text-capitalize">{weatherData.description}</li>
-                    </ul>
-                </div>
-            </div>
+            </form>
+            <WeatherInfo data={weatherData}/>
+           
         </div>
     );
     } else{
-        return ("Loading")
+        search();
+        return "Loading"
     }
     
 }
